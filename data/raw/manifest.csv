@@ -1,0 +1,3 @@
+filename,device_model,device_type,doc_type
+example_thermostat_x.pdf,ThermoX-200,thermostat,manual
+example_bulb_faq.html,LumiBulb-A19,smart_bulb,faq
