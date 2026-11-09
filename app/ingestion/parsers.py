@@ -1,11 +1,15 @@
+<<<<<<< HEAD
 import copy
 import re
+=======
+>>>>>>> 12a01701187fe81b02a6d357ae9cc59f9a71b514
 from collections import Counter
 from pathlib import Path
 
 import pymupdf as fitz
 from bs4 import BeautifulSoup
 
+<<<<<<< HEAD
 from app.ingestion.cleaning import (
     clean_pages,
     find_repeated_lines,
@@ -39,6 +43,11 @@ def diagnose_pdf(path: Path) -> str:
         return f"no text layer ({images} images, {len(doc)} pages): scanned PDF, run OCR first"
     return "text exists but was filtered out (check header/footer threshold or heading detection)"
 
+=======
+from app.ingestion.cleaning import clean_pages, normalize_whitespace
+from app.ingestion.models import Block
+
+>>>>>>> 12a01701187fe81b02a6d357ae9cc59f9a71b514
 
 def _body_font_size(doc: fitz.Document) -> float:
     sizes: Counter[float] = Counter()
@@ -50,6 +59,7 @@ def _body_font_size(doc: fitz.Document) -> float:
     return sizes.most_common(1)[0][0] if sizes else 10.0
 
 
+<<<<<<< HEAD
 def classify_lines(page: fitz.Page, body: float) -> list[dict]:
     """Every line on the page with the properties used for decisions (also used by debug tool)."""
     h = page.rect.height
@@ -77,23 +87,49 @@ def classify_lines(page: fitz.Page, body: float) -> list[dict]:
                         "size": round(max(s["size"] for s in spans), 1),
                         "bold_pct": round(bold / total, 2), "y": round(y0)})
     return out
+=======
+def _page_lines(page: fitz.Page, body: float) -> list[tuple[str, bool]]:
+    """(line_text, is_heading) for each line on the page."""
+    result = []
+    for b in page.get_text("dict")["blocks"]:
+        for line in b.get("lines", []):
+            text = "".join(s["text"] for s in line["spans"]).strip()
+            if not text:
+                continue
+            size = max(s["size"] for s in line["spans"])
+            bold = all(s["flags"] & 16 for s in line["spans"])
+            is_heading = len(text) < 100 and (size >= body * 1.15 or (bold and size >= body))
+            result.append((text, is_heading))
+    return result
+>>>>>>> 12a01701187fe81b02a6d357ae9cc59f9a71b514
 
 
 def parse_pdf(path: Path, meta: dict, threshold: float = 0.4, min_chars: int = 30) -> list[Block]:
     doc = fitz.open(path)
     body = _body_font_size(doc)
     raw_pages = [page.get_text() for page in doc]
+<<<<<<< HEAD
     repeated = find_repeated_lines(raw_pages, threshold)
     cleaned = clean_pages(raw_pages, threshold, min_chars)
+=======
+    cleaned = clean_pages(raw_pages, threshold, min_chars)
+    kept = {i: set(c.splitlines()) for i, c in enumerate(cleaned) if c}
+>>>>>>> 12a01701187fe81b02a6d357ae9cc59f9a71b514
 
     blocks: list[Block] = []
     section = "Introduction"
     for i, page in enumerate(doc):
+<<<<<<< HEAD
         start = len(blocks)
+=======
+        if i not in kept:
+            continue
+>>>>>>> 12a01701187fe81b02a6d357ae9cc59f9a71b514
         buf: list[str] = []
 
         def flush(page_no=i + 1):
             nonlocal buf
+<<<<<<< HEAD
             text = normalize_whitespace(fix_hyphenation("\n".join(buf)))
             if len(text) >= min_chars and section.lower() not in SKIP_SECTIONS:
                 blocks.append(Block(text=text, source=path.name, page=page_no, section=section, **meta))
@@ -133,6 +169,25 @@ def _row_text(tr) -> str:
     return " ".join(cells) if cells[0].endswith(":") else " | ".join(cells)
 
 
+=======
+            text = normalize_whitespace("\n".join(buf))
+            if text:
+                blocks.append(Block(text=text, source=path.name, page=page_no, section=section, **meta))
+            buf = []
+
+        for text, is_heading in _page_lines(page, body):
+            if text not in kept[i]:  # removed as header/footer/page number
+                continue
+            if is_heading:
+                flush()
+                section = text
+            else:
+                buf.append(text)
+        flush()
+    return blocks
+
+
+>>>>>>> 12a01701187fe81b02a6d357ae9cc59f9a71b514
 def parse_html(path: Path, meta: dict) -> list[Block]:
     soup = BeautifulSoup(path.read_text(encoding="utf-8", errors="ignore"), "html.parser")
     for tag in soup(["script", "style", "nav", "footer", "header", "aside", "form"]):
@@ -146,6 +201,7 @@ def parse_html(path: Path, meta: dict) -> list[Block]:
     def flush():
         nonlocal buf
         text = normalize_whitespace("\n".join(buf))
+<<<<<<< HEAD
         if len(text) >= 30 and section.lower() not in SKIP_SECTIONS:
             blocks.append(Block(text=text, source=path.name, page=None, section=section, **meta))
         buf = []
@@ -157,6 +213,16 @@ def parse_html(path: Path, meta: dict) -> list[Block]:
             el.get_text(" ", strip=True) if el.name.startswith("h") else _own_text(el))
         if not text or text.lower().startswith(("illustration shows", "illustration of")):
             continue  # image alt-text descriptions are noise
+=======
+        if len(text) >= 30:
+            blocks.append(Block(text=text, source=path.name, page=None, section=section, **meta))
+        buf = []
+
+    for el in root.find_all(["h1", "h2", "h3", "h4", "p", "li", "pre", "td"]):
+        text = el.get_text(" ", strip=True)
+        if not text:
+            continue
+>>>>>>> 12a01701187fe81b02a6d357ae9cc59f9a71b514
         if el.name.startswith("h"):
             flush()
             section = text

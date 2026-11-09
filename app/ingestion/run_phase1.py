@@ -8,7 +8,11 @@ import logging
 from pathlib import Path
 
 from app.core.config import settings
+<<<<<<< HEAD
 from app.ingestion.parsers import diagnose_pdf, parse_html, parse_pdf, pdf_text_chars
+=======
+from app.ingestion.parsers import parse_html, parse_pdf
+>>>>>>> 12a01701187fe81b02a6d357ae9cc59f9a71b514
 
 log = logging.getLogger("ingest")
 
@@ -51,6 +55,7 @@ def main() -> None:
             except Exception:
                 log.exception("Failed to parse %s", path.name)
                 continue
+<<<<<<< HEAD
             if not blocks:
                 reason = diagnose_pdf(path) if suffix == ".pdf" else "no <p>/<li>/<h*> text found (JS-rendered page?)"
                 log.warning("ZERO BLOCKS %s -> %s", path.name, reason)
@@ -66,6 +71,12 @@ def main() -> None:
                 if kept < 0.6:
                     log.warning("LOW COVERAGE %s (run debug_pdf on a page to see why)", msg)
             log.info(msg)
+=======
+            for b in blocks:
+                out.write(b.model_dump_json() + "\n")
+            total += len(blocks)
+            log.info("%s -> %d blocks", path.name, len(blocks))
+>>>>>>> 12a01701187fe81b02a6d357ae9cc59f9a71b514
     log.info("Wrote %d blocks to %s", total, out_path)
 
 

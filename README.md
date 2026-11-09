@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 12a01701187fe81b02a6d357ae9cc59f9a71b514
 # smart-home-rag
 
 RAG support assistant over smart-home device manuals and FAQs.
@@ -10,3 +14,9 @@ cp .env.example .env
 uv run python -m app.ingestion.run_phase1   # -> data/processed/blocks.jsonl
 uv run pytest && uv run ruff check .
 ```
+<<<<<<< HEAD
+=======
+=======
+# smart-home-rag
+>>>>>>> 7338269f146460a3bb42e629753660c5f56f5284
+>>>>>>> 12a01701187fe81b02a6d357ae9cc59f9a71b514

@@ -36,6 +36,7 @@ def test_parse_html_sections(tmp_path):
     blocks = parse_html(p, META)
     assert [b.section for b in blocks] == ["Why is it blinking red?", "How to reset?"]
     assert all(b.page is None and "menu" not in b.text for b in blocks)
+<<<<<<< HEAD
 
 
 def test_scanned_pdf_gives_zero_blocks_and_diagnosis(tmp_path):
@@ -114,3 +115,5 @@ def test_numeric_codes_are_not_headings(tmp_path):
             page.insert_text((50, 140 + i * 16), f"Parameter description {n}-{i} for the thermostat.", fontsize=11)
     doc.save(p)
     assert {b.section for b in parse_pdf(p, META)} == {"Parameters", "Wiring"}
+=======
+>>>>>>> 12a01701187fe81b02a6d357ae9cc59f9a71b514
